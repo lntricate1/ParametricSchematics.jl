@@ -1,9 +1,19 @@
 name = "ParametricSchematics"
 uuid = "438a115d-bc86-471c-afd0-3ed3084b72e0"
-authors = ["Ellie <intricatebread@gmail.com> and contributors"]
 version = "0.0.0-DEV"
+authors = ["Ellie <intricatebread@gmail.com> and contributors"]
+
+[deps]
+Litematica = "82944276-add8-4074-9c50-3a921b02611b"
+MinecraftDataStructures = "c8cd69f1-bc5f-4dbb-a861-15a5a68cdaf9"
+NBT = "b6fc1ac1-9d30-4df3-aa0b-dd666eb91533"
+PooledArrays = "2dfb63ee-cc39-5dd5-95bd-886bf059d720"
 
 [compat]
+Litematica = "0.1.0"
+MinecraftDataStructures = "1.0.0"
+NBT = "1.0.0"
+PooledArrays = "1.4.3"
 julia = "1.11"
 
 [extras]
