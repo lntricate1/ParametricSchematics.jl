@@ -26,30 +26,26 @@ struct MetaPiece{T, X, Y, Z}
   stop_z::NTuple{Z, Tuple{Int, Vararg{Int}}}
 end
 
-function tile(metapiece::MetaPiece{T, X, Y, Z}, start_indices::NTuple{3, Int},
+function tile!(output::Array{T, 3}, metapiece::MetaPiece{T, X, Y, Z}, start_indices::NTuple{3, Int},
   tile_count_x::NTuple{X, Int}, tile_count_y::NTuple{Y, Int},
   tile_count_z::NTuple{Z, Int}) where {T, X, Y, Z}
+  @boundscheck begin
   width_x = total_width(metapiece.blocksize_x, start_indices[1], tile_count_x, metapiece.start_x, metapiece.stop_x)
   width_y = total_width(metapiece.blocksize_y, start_indices[2], tile_count_y, metapiece.start_y, metapiece.stop_y)
   width_z = total_width(metapiece.blocksize_z, start_indices[3], tile_count_z, metapiece.start_z, metapiece.stop_z)
-  println("total width: ", (width_x, width_y, width_z))
+  size_x, size_y, size_z = size(output)
+  size_x >= width_x && size_y >= width_y && size_z >= width_z || throw(BoundsError("attempt to tile $(width_x)x$(width_y)x$(width_z) $(typeof(output)) with starting indices $start_indices and tile count $(tile_count_x)x$(tile_count_y)x$(tile_count_z)"))
+  end
 
-  output = zeros(T, width_x, width_y, width_z)
-  # start_index_x = metapiece.start_x[start_indices[1]]
   start_index_x = start_indices[1]
-  # start_index_x = start[1]
   out_pos_x = 1
   for x in 1:X
     start_pos_x = metapiece.start_x[x][start_index_x]
-    # start_index_y = start[2]
     start_index_y = start_indices[2]
-    # start_index_y = metapiece.start_y[start_indices[2]]
     out_pos_y = 1
     for y in 1:Y
       start_pos_y = metapiece.start_y[y][start_index_y]
-      # start_index_z = start[3]
       start_index_z = start_indices[3]
-      # start_index_z = metapiece.start_z[start_indices[3]]
       out_pos_z = 1
       for z in 1:Z
         start_pos_z = metapiece.start_z[z][start_index_z]
@@ -73,6 +69,18 @@ function tile(metapiece::MetaPiece{T, X, Y, Z}, start_indices::NTuple{3, Int},
     start_index_x = mod(stop_index_x - 1, length(metapiece.stop_x[x])) + 1
   end
   return output
+end
+
+function tile(metapiece::MetaPiece{T, X, Y, Z}, start_indices::NTuple{3, Int},
+  tile_count_x::NTuple{X, Int}, tile_count_y::NTuple{Y, Int},
+  tile_count_z::NTuple{Z, Int}) where {T, X, Y, Z}
+  width_x = total_width(metapiece.blocksize_x, start_indices[1], tile_count_x, metapiece.start_x, metapiece.stop_x)
+  width_y = total_width(metapiece.blocksize_y, start_indices[2], tile_count_y, metapiece.start_y, metapiece.stop_y)
+  width_z = total_width(metapiece.blocksize_z, start_indices[3], tile_count_z, metapiece.start_z, metapiece.stop_z)
+  println("total width: ", (width_x, width_y, width_z))
+
+  output = zeros(T, width_x, width_y, width_z)
+  @inbounds tile!(output, metapiece, start_indices, tile_count_x, tile_count_y, tile_count_z)
 end
 
 function total_width(blocksize::NTuple{N, Int}, start_index::Int, tile_count::NTuple{N, Int}, start_pts::NTuple{N, Tuple{Int, Vararg{Int}}}, stop_pts::NTuple{N, Tuple{Int, Vararg{Int}}}) where N
